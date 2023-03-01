@@ -11,7 +11,7 @@ class QuestionsDatabase < SQLite3::Database
 end
 
 class User
-    attr_reader :id
+    attr_reader :id, :fname, :lname
     def initialize(options)
         @id = options['id']
         @fname = options['fname']
@@ -20,23 +20,21 @@ class User
 
     def self.find_by_id(id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM users WHERE id = #{id} ")
-        data.map { |datum| User.new(datum) }
+        User.new(data[0])
     end
 
-    def self.find_by_name(fnam, lname)
+    def self.find_by_name(fname, lname)
         data = QuestionsDatabase.instance.execute("SELECT * FROM users WHERE fname = #{fname} AND lname = #{lname}")
-        data.map { |datum| User.new(datum) }
+        User.new(data[0])
     end
 
-    def authored_questions # user.authored_questions
+    def authored_questions
         Question.find_by_author_id(self.id)
     end
 
     def authored_replies
         Reply.find_by_user_id(self.id)
     end
-
-
 end
 
 class Question
@@ -49,13 +47,23 @@ class Question
 
     def self.find_by_id(id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM questions WHERE id = #{id} ")
-        data.map {|datum| Question.new(datum) }
+        Question.new(data[0])
     end
 
     def self.find_by_author_id(author_id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM questions WHERE user_id = #{author_id } ")
         data.map { |datum| Question.new(datum) }
     end
+
+    def author
+        author = QuestionsDatabase.instance.execute("SELECT * FROM users WHERE id = #{@user_id} ")
+        User.new(author[0])
+    end
+
+    def replies
+        Reply.find_by_user_id(@user_id)
+    end
+
 end
 
 class Question_Follows
@@ -67,7 +75,7 @@ class Question_Follows
 
     def self.find_by_id(id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM question_follows WHERE id = #{id} ")
-        data.map { |datum| Question_Follows.new(datum) }
+        Question_Follows.new(data[0])
     end
 end
 
@@ -82,7 +90,7 @@ class Reply
 
     def self.find_by_id(id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE id = #{id} ")
-        data.map { |datum| Reply.new(datum) }
+        Reply.new(data[0])
     end
 
     def self.find_by_user_id(user_id)
@@ -93,6 +101,26 @@ class Reply
     def self.find_by_question_id(question_id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE question_id = #{question_id} ")
         data.map { |datum| Reply.new(datum) }
+    end
+
+    def author
+        author = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE id = #{@user_id} ")
+        Reply.new(author[0])
+    end
+
+    def question
+        question = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE question_id = #{@question_id} ")
+        Reply.new(question[0])
+    end
+
+    def parent_reply
+        p_reply = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE question_id = #{@parent_reply_id} ")
+        Reply.new(p_reply[0])
+    end
+
+    def child_replies
+        c_reply = QuestionsDatabase.instance.execute("SELECT * FROM replies WHERE parent_reply_id = #{@id} ")
+        c_reply.map { |datum| Reply.new(datum)}
     end
 end
 
@@ -105,6 +133,6 @@ class Question_Like
 
     def self.find_by_id(id)
         data = QuestionsDatabase.instance.execute("SELECT * FROM questions_likes WHERE id = #{id} ")
-        data.map { |datum| Question_Like.new(datum) }
+        Question_Like.new(data[0])
     end
 end

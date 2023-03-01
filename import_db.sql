@@ -47,7 +47,10 @@ CREATE TABLE questions_likes (
 );
 
 -- INSERT INTO
--- users ("fname", "lname") VALUES ("Rod", "Mendoza");
+-- question_follows ("question_id", "user_id") VALUES (1, 1);
 
 -- INSERT INTO
--- questions ("title", "body", "user_id") VALUES ("SQL Q's", "What is a SQ?L", 1);
+-- replies ("body", "question_id", "user_id") VALUES ("Structured Query Language", 1, 1);
+
+-- INSERT INTO
+-- questions_likes ("user_id", "question_id") VALUES (1,1)

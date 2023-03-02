@@ -77,6 +77,16 @@ class Question_Follows
         data = QuestionsDatabase.instance.execute("SELECT * FROM question_follows WHERE id = #{id} ")
         Question_Follows.new(data[0])
     end
+
+    def self.followers_for_questions_id(question_id)
+        all_users = QuestionsDatabase.instance.execute("SELECT * FROM users JOIN question_follows ON users.id = question_follows.user_id")
+    end
+
+    def self.followed_questions_for_user_id(user_id)
+        all_questions = QuestionsDatabase.instance.execute("SELECT * FROM users JOIN question_follows
+         ON users.id = question_follows.user_id  WHERE question_follows.user_id = #{user_id}")
+    end
+
 end
 
 class Reply
@@ -136,3 +146,12 @@ class Question_Like
         Question_Like.new(data[0])
     end
 end
+
+
+
+# SELECT 
+#     *
+# FROM
+# TableA
+# JOIN TableB
+# ON TableA.name = TableB.name

@@ -31,7 +31,6 @@ CREATE TABLE replies (
     parent_reply_id INTEGER,
     user_id INTEGER NOT NULL,
 
-
     FOREIGN KEY (parent_reply_id) REFERENCES replies(id),
     FOREIGN KEY (question_id) REFERENCES questions(id),
     FOREIGN KEY (user_id) REFERENCES users(id)

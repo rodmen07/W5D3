@@ -35,6 +35,27 @@ class User
     def authored_replies
         Reply.find_by_user_id(self.id)
     end
+
+    def followed_questions
+        Question_Follows.followed_questions_for_user_id(@id)
+    end
+
+    def liked_questions
+        Question_Like.liked_questions_for_user_id(@id)
+    end
+
+    def average_karma
+        avg_likes = QuestionsDatabase.instance.execute("
+        SELECT
+            AVG()
+        FROM
+            questions
+        LEFT OUTER JOIN
+            questions_likes
+        GROUP BY
+            questions.user_id
+        ")
+    end
 end
 
 class Question
@@ -64,6 +85,25 @@ class Question
         Reply.find_by_user_id(@user_id)
     end
 
+    def followers
+        Question_Follows.followers_for_questions_id(@id)
+    end
+
+    def self.most_followed(n)
+        Question_Follows.most_followed_questions(n)
+    end
+
+    def likers
+        Question_Like.likers_for_question_id(@id)
+    end
+
+    def num_likes
+        Question_Like.num_likes_for_question_id(@id)
+    end
+
+    def self.most_liked(n)
+        Question_Like.most_liked_questions(n)
+    end
 end
 
 class Question_Follows
@@ -86,6 +126,19 @@ class Question_Follows
         all_questions = QuestionsDatabase.instance.execute("SELECT * FROM users JOIN question_follows
          ON users.id = question_follows.user_id  WHERE question_follows.user_id = #{user_id}")
     end
+
+    def self.most_followed_questions(n)
+        followed_questions = QuestionsDatabase.instance.execute("
+        SELECT
+            question_id, COUNT(question_id)
+        FROM
+            question_follows
+        GROUP BY
+            question_id
+        ORDER BY question_id DESC
+        LIMIT #{n}")
+    end
+
 
 end
 
@@ -145,11 +198,44 @@ class Question_Like
         data = QuestionsDatabase.instance.execute("SELECT * FROM questions_likes WHERE id = #{id} ")
         Question_Like.new(data[0])
     end
+
+    def self.likers_for_question_id(question_id)
+        likers = QuestionsDatabase.instance.execute("
+            SELECT *
+            FROM questions_likes
+            WHERE question_id = #{question_id} ")
+    end
+
+    def self.num_likes_for_question_id(question_id)
+        like_count = QuestionsDatabase.instance.execute("
+            SELECT COUNT(*) AS num_likes
+            FROM questions_likes
+            WHERE question_id = #{question_id}")
+    end
+
+    def self.liked_questions_for_user_id(user_id)
+        liked_questions = QuestionsDatabase.instance.execute("
+            SELECT *
+            FROM questions_likes
+            WHERE user_id = #{user_id} ")
+    end
+
+    def self.most_liked_questions(n)
+        most_liked_questions = QuestionsDatabase.instance.execute("
+        SELECT
+            question_id, COUNT(question_id)
+        FROM
+            questions_likes
+        GROUP BY
+            question_id
+        ORDER BY question_id DESC
+        LIMIT #{n}")
+    end
 end
 
 
 
-# SELECT 
+# SELECT
 #     *
 # FROM
 # TableA
